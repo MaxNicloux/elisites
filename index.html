@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pour ma blonde 💖</title>
+  <style>
+    /* Style général futuriste */
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap');
+
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      font-family: 'Orbitron', sans-serif;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      color: #00ffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    h1 {
+      font-size: 3em;
+      text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
+      animation: glow 2s infinite alternate;
+    }
+
+    p {
+      font-size: 1.5em;
+      text-align: center;
+      max-width: 600px;
+      text-shadow: 0 0 5px #00ffff;
+      animation: fadeIn 4s infinite alternate;
+    }
+
+    @keyframes glow {
+      from { text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff; }
+      to { text-shadow: 0 0 20px #ff00ff, 0 0 40px #ff00ff; }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0.6; }
+      to { opacity: 1; }
+    }
+
+    /* Effet fond animé */
+    .background {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0; left: 0;
+      background: linear-gradient(270deg, #00ffff, #ff00ff, #00ff00, #ff00ff);
+      background-size: 800% 800%;
+      z-index: -1;
+      animation: gradientBG 15s ease infinite;
+    }
+
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .love-messages {
+      margin-top: 30px;
+      font-size: 1.2em;
+      color: #ff69b4;
+      animation: pulse 3s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.7; }
+      50% { opacity: 1; }
+    }
+
+  </style>
+</head>
+<body>
+  <div class="background"></div>
+  <h1>Pour toi, ma belle 🌟</h1>
+  <p>Tu travailles fort pour ta fin de session, et je suis tellement fier de toi !</p>
+  <div class="love-messages">
+    <p>❤️ Tu es incroyable ❤️</p>
+    <p>💖 Continue à briller 💖</p>
+    <p>✨ Je t’aime tellement ✨</p>
+  </div>
+</body>
+</html>
