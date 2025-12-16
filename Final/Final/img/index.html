@@ -1,0 +1,247 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+        canvas {
+            border: 1px solid #d3d3d3;
+            background-color: #f1f1f1;
+        }
+
+        #message {
+            font-family: Consolas;
+            font-size: 30px;
+            color: black;
+            margin: 20px;
+        }
+
+        #finalMessage {
+            font-family: Consolas;
+            font-size: 24px;
+            color: black;
+            margin: 20px;
+            text-align: center;
+        }
+
+        .button {
+            font-size: 18px;
+            padding: 10px 20px;
+            margin: 10px;
+        }
+    </style>
+</head>
+<body onload="startGame()">
+    <div id="message"></div>
+    <div id="finalMessage" style="display: none;"></div>
+    <div id="gameContainer">
+        <script>
+            var myGamePiece;
+            var myObstacles = [];
+            var myScore;
+            var myLevelText;
+            var level = 1;
+            var speedFactor = 3;
+            var pointsPerLevel = 3000;
+            var gamePaused = false;
+            var waitingForNextLevel = false;
+            var maxLevel = 5;
+            var backgroundImage = new Image();
+            backgroundImage.src = "/img/IMG_1892.JPG";
+
+            var messagesNiveauReussi = [
+                "Depuis que je t'ai rencontrée, je n'ai jamais été déçu de ce que j'ai vu en toi. Tu es une personne avec un grand cœur, tu es vraiment jolie ;) Je ne veux pas que tu changes, reste la personne incroyable que tu es.",
+                "Éli, je t'aime beaucoup, tu comptes énormément pour moi. J'espère que tu le sais!!",
+                "J'ai l'impression que c'est le début d'une belle aventure remplis de surprise, de plaisir et d'amour!",
+                "Yoooooo, y te reste juste un niveau, ya pas de message cute ici sorry (C'est ta seule conséquence de mavoir dit je t'aime hier)",
+                "Veux-tu sortir avec moi ?"
+            ];
+
+            function startGame() {
+                document.getElementById("message").innerHTML = "";
+                document.getElementById("finalMessage").style.display = "none";
+                document.getElementById("gameContainer").style.display = "block";
+                myGamePiece = new component(30, 30, "red", 10, 120, "heart");
+                myGamePiece.gravity = 0.05;
+                myScore = new component("30px", "Consolas", "white", 280, 40, "text");
+                myLevelText = new component("30px", "Consolas", "white", 10, 40, "text");
+                myObstacles = [];
+                myGameArea.start();
+            }
+
+            var myGameArea = {
+                canvas: document.createElement("canvas"),
+                start: function () {
+                    this.canvas.width = 480;
+                    this.canvas.height = 270;
+                    this.context = this.canvas.getContext("2d");
+                    document.getElementById("gameContainer").appendChild(this.canvas);
+                    this.frameNo = 0;
+                    this.interval = setInterval(updateGameArea, 20);
+                },
+                clear: function () {
+                    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                },
+                stop: function () {
+                    clearInterval(this.interval);
+                }
+            }
+
+            function component(width, height, color, x, y, type) {
+                this.type = type;
+                this.score = 0;
+                this.width = width;
+                this.height = height;
+                this.speedX = 0;
+                this.speedY = 0;
+                this.x = x;
+                this.y = y;
+                this.gravity = 0;
+                this.gravitySpeed = 0;
+                this.update = function () {
+                    ctx = myGameArea.context;
+                    if (this.type == "text") {
+                        ctx.font = this.width + " " + this.height;
+                        ctx.fillStyle = color;
+                        ctx.fillText(this.text, this.x, this.y);
+                    } else if (this.type === "heart") {
+                        ctx.fillStyle = color;
+                        ctx.beginPath();
+                        ctx.moveTo(this.x + this.width / 2, this.y + this.height / 4);
+                        ctx.bezierCurveTo(this.x, this.y, this.x, this.y + this.height / 2, this.x + this.width / 2, this.y + this.height);
+                        ctx.bezierCurveTo(this.x + this.width, this.y + this.height / 2, this.x + this.width, this.y, this.x + this.width / 2, this.y + this.height / 4);
+                        ctx.fill();
+                    } else {
+                        ctx.fillStyle = color;
+                        ctx.fillRect(this.x, this.y, this.width, this.height);
+                    }
+                }
+                this.newPos = function () {
+                    this.gravitySpeed += this.gravity;
+                    this.x += this.speedX;
+                    this.y += this.speedY + this.gravitySpeed;
+                    this.hitBottom();
+                }
+                this.hitBottom = function () {
+                    var rockbottom = myGameArea.canvas.height - this.height;
+                    if (this.y > rockbottom) {
+                        this.y = rockbottom;
+                        this.gravitySpeed = 0;
+                    }
+                }
+                this.crashWith = function (otherobj) {
+                    var myleft = this.x;
+                    var myright = this.x + (this.width);
+                    var mytop = this.y;
+                    var mybottom = this.y + (this.height);
+                    var otherleft = otherobj.x;
+                    var otherright = otherobj.x + (otherobj.width);
+                    var othertop = otherobj.y;
+                    var otherbottom = otherobj.y + (otherobj.height);
+                    var crash = true;
+                    if ((mybottom < othertop) || (mytop > otherbottom) || (myright < otherleft) || (myleft > otherright)) {
+                        crash = false;
+                    }
+                    return crash;
+                }
+            }
+
+            function updateGameArea() {
+                if (gamePaused || waitingForNextLevel) return;
+
+                var x, height, gap, minHeight, maxHeight, minGap, maxGap;
+
+                if (myGameArea.frameNo >= pointsPerLevel) {
+                    nextLevel();
+                    return;
+                }
+
+                for (i = 0; i < myObstacles.length; i += 1) {
+                    if (myGamePiece.crashWith(myObstacles[i])) {
+                        return;
+                    }
+                }
+                myGameArea.clear();
+                myGameArea.context.drawImage(backgroundImage, 0, 0, myGameArea.canvas.width, myGameArea.canvas.height);
+                myGameArea.frameNo += 1;
+
+                if (myGameArea.frameNo == 1 || everyinterval(150)) {
+                    x = myGameArea.canvas.width;
+                    minHeight = 20;
+                    maxHeight = 200;
+                    height = Math.floor(Math.random() * (maxHeight - minHeight + 1) + minHeight);
+                    minGap = 50;
+                    maxGap = 200;
+                    gap = Math.floor(Math.random() * (maxGap - minGap + 1) + minGap);
+                    myObstacles.push(new component(10, height, "green", x, 0));
+                    myObstacles.push(new component(10, x - height - gap, "green", x, height + gap));
+                }
+                for (i = 0; i < myObstacles.length; i += 1) {
+                    myObstacles[i].x += -1 * speedFactor;
+                    myObstacles[i].update();
+                }
+                myScore.text = "SCORE: " + myGameArea.frameNo;
+                myScore.update();
+                myLevelText.text = "NIVEAU: " + level;
+                myLevelText.update();
+                myGamePiece.newPos();
+                myGamePiece.update();
+            }
+
+            function everyinterval(n) {
+                if ((myGameArea.frameNo / n) % 1 == 0) return true;
+                return false;
+            }
+
+            function accelerate(n) {
+                if (waitingForNextLevel) {
+                    waitingForNextLevel = false;
+                    level++;
+
+                    document.getElementById("message").innerHTML = "";
+                    speedFactor += 1;
+
+                    startGame();
+                } else {
+                    myGamePiece.gravity = n;
+                }
+            }
+
+            function nextLevel() {
+                if (level >= maxLevel) {
+                    myGameArea.stop();
+                    document.getElementById("gameContainer").style.display = "none";
+                    document.getElementById("finalMessage").innerHTML = messagesNiveauReussi[level - 1] +
+                        "<br><button class='button' onclick='repondreProposition(true)'>Oui</button>" +
+                        "<button class='button' onclick='repondreProposition(false)'>Non</button>";
+                    document.getElementById("finalMessage").style.display = "block";
+                } else {
+                    waitingForNextLevel = true;
+                    myGameArea.stop();
+                    document.getElementById("message").innerHTML = messagesNiveauReussi[level - 1] + " Clique sur 'Jouer' pour continuer.";
+                }
+            }
+
+            function restartLevel() {
+                gamePaused = true;
+                myGameArea.stop();
+                myGameArea.frameNo = 0;
+                myObstacles = [];
+                myGamePiece.y = 120;
+                gamePaused = false;
+                myGameArea.start();
+            }
+
+            function repondreProposition(reponse) {
+                if (reponse) {
+                    document.getElementById("finalMessage").innerHTML = "Merci d'avoir prix le temps de faire ce petit jeux ! Je t'aime !";
+                } else {
+                    document.getElementById("finalMessage").innerHTML = "Je comprends. J'espère que nous pourrons continuer à être amis.";
+                }
+            }
+        </script>
+    </div>
+    <br>
+    <button onmousedown="accelerate(-0.2)" onmouseup="accelerate(0.05)">Jouer</button>
+    <button onclick="restartLevel()">Recommencer</button>
+</body>
+</html>

@@ -1,0 +1,18 @@
+# Dossier Visual Studio
+.vs/
+
+# Fichiers temporaires Windows
+Thumbs.db
+Desktop.ini
+
+# Dossiers de build / logs
+bin/
+obj/
+*.log
+
+# Node / npm (si tu utilises JS)
+node_modules/
+
+# Fichiers de configuration personnels
+*.user
+*.suo
